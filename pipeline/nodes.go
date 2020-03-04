@@ -35,12 +35,12 @@ func InMemSort(in <-chan int) chan int {
 	return out
 }
 
-func 	MergeN(inputs ...<-chan int) <-chan int{
+func MergeN(inputs ...<-chan int) <-chan int{
 	if len(inputs)==1{
 		return inputs[0]
 	}
 	m:=len(inputs)/2
-	return Merge(MergeN(inputs[:m]...),MergeN(inputs[m:]...))//这个尾递归就告诉我们"Merge done"
+	return Merge(MergeN(inputs[:m]...),MergeN(inputs[m:]...))//啊！这也是瞬间就返回了！！！
 }
 
 func Merge(in1,in2 <-chan int) <-chan int {
@@ -59,7 +59,6 @@ func Merge(in1,in2 <-chan int) <-chan int {
 		}
 		close(out)
 		fmt.Println("Merge done:",time.Now().Sub(startTime))
-
 	}()
 	return out
 }
@@ -69,12 +68,12 @@ func ReadSource(reader io.Reader,chunkSize int) <-chan int { //要求传入一�
 
 	out := make(chan int,1024)
 	go func() {
-		buffer:=make([]byte,8)
+		buffer:=make([]byte,8)     //要用buffer的
 		bytesRead := 0
 		for{
 			n,err:=reader.Read(buffer) //读reader到buffer
 			bytesRead+=n
-			if n>0{
+			if n>0{    //就算有n>0 err也可能有错误(读到EOF了)
 				v:=int(binary.BigEndian.Uint64(buffer)) //强转成有符号的int   大端
 				out<-v
 			}
@@ -93,7 +92,7 @@ func WriteSink(writer io.Writer,in <-chan int)  { //要求传入的参数必须�
 	for v:= range in{
 		buffer:=make([]byte,8)    //控制数据流动的单位
 		binary.BigEndian.PutUint64(buffer,uint64(v))
-		writer.Write(buffer)       //这是真正用到了接口的功能
+		writer.Write(buffer)       //这是真正用到了接口的功能    //有个问题先留一留这不会归并排序返回的goroutine不是一下就返回了吗
 	}
 }
 

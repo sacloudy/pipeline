@@ -17,7 +17,7 @@ func main() {
 func creatPipeline(filename string,fileSize,chunkCount int) <-chan int { //fileSize单位就是Byte
 
 	chunkSize:=fileSize/chunkCount
-	sortResults:=[]<-chan int{}
+	sortResults:=[]<-chan int{} //切片：chan int数组的视图
 
 	pipeline.Init()
 
@@ -29,15 +29,13 @@ func creatPipeline(filename string,fileSize,chunkCount int) <-chan int { //fileS
 
 		_, _ = file.Seek(int64(i*chunkSize), 0)
 
-		source:=pipeline.ReadSource(bufio.NewReader(file),chunkSize)
+		source:=pipeline.ReadSource(bufio.NewReader(file),chunkSize) //真正要分块读取文件啦
 
-		sortResults=append(sortResults,pipeline.InMemSort(source))//通过channel通信！
+		sortResults=append(sortResults,pipeline.InMemSort(source))//把4个chan int拼起来
 	}
 
 	return pipeline.MergeN(sortResults...)  //要传slice的话需要先打散了
 }
-
-
 
 func writeToFile(p <-chan int, filename string) {
 	file,err:=os.Create(filename)
@@ -70,6 +68,11 @@ func printFile(filename string) {
 		}
 	}
 }
+
+
+
+
+
 
 //todo 模拟网络节点
 //func creatNetWorkPipeline(filename string,fileSize,chunkCount int) <-chan int { //fileSize单位就是Byte
