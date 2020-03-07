@@ -48,7 +48,6 @@ func writeToFile(p <-chan int, filename string) {
 	defer writer.Flush()
 
 	pipeline.WriteSink(writer,p)
-
 }
 
 func printFile(filename string) {
@@ -63,7 +62,7 @@ func printFile(filename string) {
 	for v:=range p{
 		fmt.Println(v)
 		count++
-		if count>=10{
+		if count>=100{
 			break
 		}
 	}
